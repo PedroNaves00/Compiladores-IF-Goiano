@@ -1,0 +1,19 @@
+irrigar SistemaPrincipal {
+
+    sensor umidade_solo = S1,
+    sensor temperatura_solo = S2,
+    dispositivo bomba_agua = D1,
+    dispositivo valvula_1 = D2,
+
+    se (umidade_solo < 40) {
+        ligar(bomba_agua),
+        ligar(valvula_1)
+    } senao {
+        desligar(bomba_agua),
+        desligar(valvula_1)
+    },
+
+    repetir a cada 30min {
+        pausar(bomba_agua)
+    }
+}
