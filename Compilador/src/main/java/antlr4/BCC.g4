@@ -1,107 +1,86 @@
 grammar BCC;
 
+// Tokens Básicos
 TIPO_VAR
-    : 'INTEIRO' | 'REAL';
+    : 'SENSOR' | 'DISPOSITIVO';
 
-NUM_INT
-    : ('0'..'9') +
-;
+ID
+    : [a-zA-Z_] [a-zA-Z_0-9]*;
 
-NUM_REAL
-    : ('0'..'9') + ('.'('0'..'9')+)? // CAI NA PROVA
-;
+NUMERO
+    : [0-9]+ ('.' [0-9]+)?;
 
-VARIAVEL
-    : ('a'..'z' | 'A'..'Z')
-    ('a'..'z' | 'A'..'Z' | ('0'..'9')*
-    )
-;
+OP_COMPARACAO
+    : '<' | '>' | '<=' | '>=' | '==' | '!=';
 
-OP_ARIT1
-    :  '+' | '-'
-;
+OP_ARITMETICA
+    : '+' | '-' | '*' | '/';
 
-OP_ARIT2
-    : '*' | '/'
-;
+OP_LOGICA
+    : 'E' | 'OU';
 
-OP_REL
-    : '>' | '<' | '>=' | '<=' | '=' | '==' | '!='
-;
+PALAVRAS_CHAVE
+    : 'IRRIGAR' | 'SE' | 'SENAO' | 'LIGAR' | 'DESLIGAR' | 'ATRIBUIR' | 'PAUSAR' | 'IMPRIMIR' | 'REPETIR' | 'INICIO' | 'FIM';
 
-OP_BOOL
-    : 'e' | 'ou'
-;
+DELIMITADOR
+    : '{' | '}' | '(' | ')' | ':' | ',';
 
+WHITESPACE
+    : [ \t\r\n]+ -> skip;
+
+// Regras da Linguagem
 programa
-    : ':' 'DECLARACOES'
-listaDeclaracoes ':' 'ALGORITMO'
-listaComandos
-;
+    : 'IRRIGAR' ID '{' listaDeclaracoes listaComandos '}';
 
 listaDeclaracoes
-    : declaracao listaDeclaracoes | declaracao
-;
+    : declaracao (',' declaracao)*;
 
 declaracao
-    : TIPO_VAR ':' VARIAVEL
-;
-
-expressaoAritmetica
-    : expressaoAritmetica OP_ARIT1 termoAritmetico | termoAritmetico
-;
-
-termoAritmetico
-    : termoAritmetico OP_ARIT2 fatorAritmetico | fatorAritmetico
-;
-
-fatorAritmetico
-    : NUM_INT | NUM_REAL | VARIAVEL | '(' expressaoAritmetica ')'
-;
-
-expressaoRelacional
-    : expressaoRelacional OP_BOOL termoRelacional | termoRelacional
-;
-
-termoRelacional
-    : expressaoAritmetica OP_REL expressaoRelacional
-    '('expressaoRelacional ')'
-;
+    : TIPO_VAR ID '=' ID;
 
 listaComandos
-    : comando listaComandos | comando
-;
+    : comando (',' comando)*;
 
 comando
-    : comandoAtribuicao |
-    comandoEntrada |
-    comandoSaida |
-    comandoCondicao |
-    comandoRepeticao |
-    subAlgoritmo
-;
+    : comandoCondicional
+    | comandoAtribuicao
+    | comandoAtivacao
+    | comandoRepeticao
+    | comandoSaida
+    | blocoComandos;
+
+comandoCondicional
+    : 'SE' '(' expressaoRelacional ')' '{' listaComandos '}'
+      ('SENAO' '{' listaComandos '}')?;
 
 comandoAtribuicao
-    : 'ATRIBUIR' expressaoAritmetica 'A' VARIAVEL
-;
+    : 'ATRIBUIR' expressaoAritmetica 'A' ID;
 
-comandoEntrada
-    : 'LER' VARIAVEL
-;
-
-comandoSaida
-    : 'IMPRIMIR' expressaoAritmetica
-;
-
-comandoCondicao
-    : 'SE' expressaoRelacional 'ENTAO' comando |
-    'SE' expressaoRelacional 'ENTAO' comando 'SENAO' comando
-;
+comandoAtivacao
+    : 'LIGAR' '(' ID ')' | 'DESLIGAR' '(' ID ')';
 
 comandoRepeticao
-    : 'ENQUANTO' expressaoRelacional comando
-;
+    : 'REPETIR' 'A CADA' NUMERO 'MIN' '{' listaComandos '}';
 
-subAlgoritmo
-    : 'INICIO' listaComandos 'FIM'
-;
+comandoSaida
+    : 'IMPRIMIR' '(' expressao ')';
+
+blocoComandos
+    : 'INICIO' listaComandos 'FIM';
+
+expressaoRelacional
+    : expressao OP_COMPARACAO expressao;
+
+expressaoLogica
+    : expressaoRelacional OP_LOGICA expressaoRelacional;
+
+expressaoAritmetica
+    : expressaoAritmetica OP_ARITMETICA termo | termo;
+
+termo
+    : NUMERO | ID | '(' expressao ')';
+
+expressao
+    : expressaoAritmetica
+    | expressaoRelacional
+    | expressaoLogica;
